@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\PaymentRequest;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class PaymentRequestService
 {
@@ -49,14 +50,25 @@ class PaymentRequestService
 
     public function markAsPaid(PaymentRequest $paymentRequest, int $userId, string $paymentMethod, string $sourceAccount): PaymentRequest
     {
-        $paymentRequest->update([
+        $payload = [
             'status' => 'paid',
             'payment_status' => 'paid',
-            'payment_method' => $paymentMethod,
-            'source_account' => $sourceAccount,
-            'paid_at' => now(),
             'updated_by' => $userId,
-        ]);
+        ];
+
+        if (Schema::hasColumn($paymentRequest->getTable(), 'payment_method')) {
+            $payload['payment_method'] = $paymentMethod;
+        }
+
+        if (Schema::hasColumn($paymentRequest->getTable(), 'source_account')) {
+            $payload['source_account'] = $sourceAccount;
+        }
+
+        if (Schema::hasColumn($paymentRequest->getTable(), 'paid_at')) {
+            $payload['paid_at'] = now();
+        }
+
+        $paymentRequest->update($payload);
 
         return $paymentRequest->refresh();
     }
