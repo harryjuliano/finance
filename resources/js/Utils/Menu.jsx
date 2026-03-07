@@ -1,70 +1,133 @@
 import { usePage } from '@inertiajs/react';
-import { IconCirclePlus, IconLayout2, IconTable, IconUserBolt, IconUserShield, IconUsers } from '@tabler/icons-react';
+import {
+    IconAdjustments,
+    IconBuildingBank,
+    IconChecklist,
+    IconClipboardCheck,
+    IconLayout2,
+    IconReportAnalytics,
+    IconSettings,
+    IconTransform,
+    IconUserBolt,
+    IconUserShield,
+    IconUsers,
+    IconTable,
+    IconCirclePlus,
+} from '@tabler/icons-react';
 import hasAnyPermission from './Permissions';
-import React from 'react'
+import React from 'react';
 
 export default function Menu() {
-
-    // define use page
     const { url } = usePage();
 
-    // define menu navigations
     const menuNavigation = [
         {
-            title: 'Overview',
+            title: 'Cash Management',
             permissions: hasAnyPermission(['dashboard-access']),
             details: [
                 {
-                    title : 'Dashboard',
-                    href : '/apps/dashboard',
-                    active: url.startsWith('/apps/dashboard') ? true : false,
-                    icon : <IconLayout2 size={20} strokeWidth={1.5}/>,
-                    permissions:  hasAnyPermission(['dashboard-access']),
+                    title: 'Dashboard',
+                    href: '/apps/dashboard',
+                    active: url.startsWith('/apps/dashboard'),
+                    icon: <IconLayout2 size={20} strokeWidth={1.5} />,
+                    permissions: hasAnyPermission(['dashboard-access']),
                 },
-            ]
+                {
+                    title: 'Master Data',
+                    href: '/apps/cash-management/master-data',
+                    active: url.startsWith('/apps/cash-management/master-data'),
+                    icon: <IconBuildingBank size={20} strokeWidth={1.5} />,
+                    permissions: hasAnyPermission(['dashboard-access']),
+                },
+                {
+                    title: 'Transactions',
+                    href: '/apps/cash-management/transactions',
+                    active: url.startsWith('/apps/cash-management/transactions'),
+                    icon: <IconTransform size={20} strokeWidth={1.5} />,
+                    permissions: hasAnyPermission(['dashboard-access']),
+                },
+                {
+                    title: 'Approvals',
+                    href: '/apps/cash-management/approvals',
+                    active: url.startsWith('/apps/cash-management/approvals'),
+                    icon: <IconClipboardCheck size={20} strokeWidth={1.5} />,
+                    permissions: hasAnyPermission(['dashboard-access']),
+                },
+                {
+                    title: 'Treasury',
+                    href: '/apps/cash-management/treasury',
+                    active: url.startsWith('/apps/cash-management/treasury'),
+                    icon: <IconChecklist size={20} strokeWidth={1.5} />,
+                    permissions: hasAnyPermission(['dashboard-access']),
+                },
+                {
+                    title: 'Reconciliation',
+                    href: '/apps/cash-management/reconciliation',
+                    active: url.startsWith('/apps/cash-management/reconciliation'),
+                    icon: <IconAdjustments size={20} strokeWidth={1.5} />,
+                    permissions: hasAnyPermission(['dashboard-access']),
+                },
+                {
+                    title: 'Reports',
+                    href: '/apps/cash-management/reports',
+                    active: url.startsWith('/apps/cash-management/reports'),
+                    icon: <IconReportAnalytics size={20} strokeWidth={1.5} />,
+                    permissions: hasAnyPermission(['dashboard-access']),
+                },
+                {
+                    title: 'Administration',
+                    href: '/apps/cash-management/administration',
+                    active: url.startsWith('/apps/cash-management/administration'),
+                    icon: <IconSettings size={20} strokeWidth={1.5} />,
+                    permissions: hasAnyPermission(['dashboard-access']),
+                },
+            ],
         },
         {
             title: 'User Management',
-            permissions: hasAnyPermission(['permissions-access']) || hasAnyPermission(['roles-access']) || hasAnyPermission(['users-access']),
-            details : [
+            permissions:
+                hasAnyPermission(['permissions-access']) ||
+                hasAnyPermission(['roles-access']) ||
+                hasAnyPermission(['users-access']),
+            details: [
                 {
-                    title : 'Hak Akses',
-                    href : '/apps/permissions',
-                    active: url.startsWith('/apps/permissions') ? true : false,
-                    icon : <IconUserBolt size={20} strokeWidth={1.5}/>,
+                    title: 'Hak Akses',
+                    href: '/apps/permissions',
+                    active: url.startsWith('/apps/permissions'),
+                    icon: <IconUserBolt size={20} strokeWidth={1.5} />,
                     permissions: hasAnyPermission(['permissions-access']),
                 },
                 {
-                    title : 'Akses Group',
-                    href : '/apps/roles',
-                    active: url.startsWith('/apps/roles') ? true : false,
-                    icon : <IconUserShield size={20} strokeWidth={1.5}/>,
-                    permissions:  hasAnyPermission(['roles-access']),
+                    title: 'Akses Group',
+                    href: '/apps/roles',
+                    active: url.startsWith('/apps/roles'),
+                    icon: <IconUserShield size={20} strokeWidth={1.5} />,
+                    permissions: hasAnyPermission(['roles-access']),
                 },
                 {
-                    title : 'Pengguna',
-                    icon : <IconUsers size={20} strokeWidth={1.5}/>,
+                    title: 'Pengguna',
+                    icon: <IconUsers size={20} strokeWidth={1.5} />,
                     permissions: hasAnyPermission(['users-access']),
                     subdetails: [
                         {
                             title: 'Data Pengguna',
                             href: '/apps/users',
-                            icon: <IconTable size={20} strokeWidth={1.5}/>,
-                            active: url === '/apps/users' ? true : false,
+                            icon: <IconTable size={20} strokeWidth={1.5} />,
+                            active: url === '/apps/users',
                             permissions: hasAnyPermission(['users-data']),
                         },
                         {
                             title: 'Tambah Data Pengguna',
                             href: '/apps/users/create',
-                            icon: <IconCirclePlus size={20} strokeWidth={1.5}/>,
-                            active: url === '/apps/users/create' ? true : false,
+                            icon: <IconCirclePlus size={20} strokeWidth={1.5} />,
+                            active: url === '/apps/users/create',
                             permissions: hasAnyPermission(['users-create']),
                         },
-                    ]
-                }
-            ]
-        }
-    ]
+                    ],
+                },
+            ],
+        },
+    ];
 
     return menuNavigation;
 }
