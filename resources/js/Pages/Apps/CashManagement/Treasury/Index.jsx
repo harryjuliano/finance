@@ -1,7 +1,7 @@
 import Card from '@/Components/Card';
 import Table from '@/Components/Table';
 import AppLayout from '@/Layouts/AppLayout';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { IconCheck, IconClockHour4, IconFileText, IconWallet } from '@tabler/icons-react';
 
 const statusClassMap = {
@@ -11,6 +11,14 @@ const statusClassMap = {
 };
 
 export default function Index({ summary, executionQueue, recentExecutions }) {
+    const buildFilteredUrl = (statusFilter) => {
+        if (!statusFilter) {
+            return route('apps.cash-management.payment-requests.index');
+        }
+
+        return `${route('apps.cash-management.payment-requests.index')}?status=${statusFilter}`;
+    };
+
     return (
         <>
             <Head title="Cash Execution" />
@@ -31,7 +39,15 @@ export default function Index({ summary, executionQueue, recentExecutions }) {
                         {summary.map((item) => (
                             <div key={item.label} className="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-900/40">
                                 <p className="text-xs text-gray-500 dark:text-gray-400">{item.label}</p>
-                                <p className="mt-1 text-lg font-semibold text-gray-800 dark:text-gray-100">{item.value}</p>
+                                <p className="mt-1 text-lg font-semibold text-gray-800 dark:text-gray-100">
+                                    {item.status_filter ? (
+                                        <Link href={buildFilteredUrl(item.status_filter)} className="hover:text-blue-600 hover:underline dark:hover:text-blue-300">
+                                            {item.value}
+                                        </Link>
+                                    ) : (
+                                        item.value
+                                    )}
+                                </p>
                             </div>
                         ))}
                     </div>

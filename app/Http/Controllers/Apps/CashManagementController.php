@@ -56,10 +56,10 @@ class CashManagementController extends Controller
     {
         return Inertia::render('Apps/CashManagement/Treasury/Index', [
             'summary' => [
-                ['label' => 'Ready to Execute', 'value' => '12 request'],
-                ['label' => 'Queued in Bank Portal', 'value' => '4 request'],
-                ['label' => 'Executed Today', 'value' => '7 request'],
-                ['label' => 'Total Amount Today', 'value' => 'Rp 438.750.000'],
+                ['label' => 'Ready to Execute', 'value' => '12 request', 'status_filter' => 'ready'],
+                ['label' => 'Queued in Bank Portal', 'value' => '4 request', 'status_filter' => 'queued'],
+                ['label' => 'Executed Today', 'value' => '7 request', 'status_filter' => 'paid'],
+                ['label' => 'Total Amount Today', 'value' => 'Rp 438.750.000', 'status_filter' => null],
             ],
             'executionQueue' => [
                 [
