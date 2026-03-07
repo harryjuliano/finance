@@ -18,7 +18,8 @@ class DatabaseSeeder extends Seeder
             UserTableSeeder::class,
             MasterDataSeeder::class,
             ErpFinanceMasterSeeder::class,
-            TransactionSeeder::class,
+            CashManagementReferenceSeeder::class,
+            CashManagementTransactionSeeder::class,
         ]);
     }
 }
