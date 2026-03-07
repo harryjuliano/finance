@@ -1,8 +1,7 @@
 <?php
 
 use App\Http\Controllers\Apps\CashManagementController;
-use App\Http\Controllers\Apps\MasterDataController;
-use App\Http\Controllers\Apps\TransactionController;
+use App\Http\Controllers\Apps\PaymentRequestController;
 use App\Http\Controllers\Apps\PermissionController;
 use App\Http\Controllers\Apps\RoleController;
 use App\Http\Controllers\Apps\UserController;
@@ -26,24 +25,22 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::group(['prefix' => 'apps', 'as' => 'apps.' , 'middleware' => ['auth']], function(){
-    // dashboard route
+Route::group(['prefix' => 'apps', 'as' => 'apps.', 'middleware' => ['auth']], function () {
     Route::get('/dashboard', [CashManagementController::class, 'dashboard'])->name('dashboard');
 
     Route::prefix('/cash-management')->as('cash-management.')->group(function () {
-        Route::resource('/master-data', MasterDataController::class)->except(['create', 'edit', 'show']);
-        Route::resource('/transactions', TransactionController::class)->except(['create', 'edit', 'show']);
+        Route::resource('/payment-requests', PaymentRequestController::class)->except(['create', 'edit', 'show']);
+        Route::post('/payment-requests/{payment_request}/submit', [PaymentRequestController::class, 'submit'])->name('payment-requests.submit');
+
         Route::get('/approvals', [CashManagementController::class, 'approvals'])->name('approvals');
         Route::get('/treasury', [CashManagementController::class, 'treasury'])->name('treasury');
         Route::get('/reconciliation', [CashManagementController::class, 'reconciliation'])->name('reconciliation');
         Route::get('/reports', [CashManagementController::class, 'reports'])->name('reports');
         Route::get('/administration', [CashManagementController::class, 'administration'])->name('administration');
     });
-    // permissions route
+
     Route::get('/permissions', PermissionController::class)->name('permissions.index');
-    // roles route
     Route::resource('/roles', RoleController::class)->except(['create', 'edit', 'show']);
-    // users route
     Route::resource('/users', UserController::class)->except('show');
 });
 
