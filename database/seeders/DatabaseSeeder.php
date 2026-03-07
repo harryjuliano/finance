@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             RoleTableSeeder::class,
             UserTableSeeder::class,
             MasterDataSeeder::class,
+            ErpFinanceMasterSeeder::class,
             TransactionSeeder::class,
         ]);
     }
