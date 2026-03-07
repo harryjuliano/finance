@@ -87,11 +87,12 @@ class CashManagementController extends Controller
             $executionStatus = $mapExecutionStatus($paymentRequest);
 
             return [
+                'id' => $paymentRequest->id,
                 'request_no' => $paymentRequest->request_no,
                 'vendor' => $paymentRequest->items->first()?->partner?->name ?? '-',
                 'due_date' => optional($paymentRequest->due_date)->format('d M Y') ?? '-',
-                'payment_method' => '-',
-                'source_account' => '-',
+                'payment_method' => $paymentRequest->payment_method ?? '-',
+                'source_account' => $paymentRequest->source_account ?? '-',
                 'amount' => 'Rp '.number_format((float) $paymentRequest->net_amount, 0, ',', '.'),
                 'status' => $executionStatus,
                 'status_label' => ucfirst($executionStatus),
@@ -115,13 +116,27 @@ class CashManagementController extends Controller
                 ['label' => 'Total Amount Today', 'value' => 'Rp '.number_format((float) $paidTodayAmount, 0, ',', '.'), 'status_filter' => null],
             ],
             'executionQueue' => $executionQueue,
+
+            'paymentMethodOptions' => [
+                'Transfer Bank',
+                'RTGS',
+                'SKN',
+                'Virtual Account',
+                'Cash',
+            ],
+            'sourceAccountOptions' => [
+                'Kas Besar - Head Office',
+                'Bank BCA Operasional',
+                'Bank Mandiri Payroll',
+                'Petty Cash Cabang Surabaya',
+            ],
             'recentExecutions' => $paymentRequests
                 ->filter(fn (PaymentRequest $paymentRequest): bool => $mapExecutionStatus($paymentRequest) === 'paid')
                 ->take(3)
                 ->map(fn (PaymentRequest $paymentRequest): array => [
                     'reference' => $paymentRequest->request_no,
                     'time' => optional($paymentRequest->updated_at)->format('d M Y H:i') ?? '-',
-                    'bank_channel' => 'Bank channel belum diinput',
+                    'bank_channel' => $paymentRequest->payment_method ?? 'Bank channel belum diinput',
                     'amount' => 'Rp '.number_format((float) $paymentRequest->net_amount, 0, ',', '.'),
                 ])
                 ->values(),

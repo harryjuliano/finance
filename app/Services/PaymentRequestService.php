@@ -46,6 +46,21 @@ class PaymentRequestService
         return $paymentRequest->refresh();
     }
 
+
+    public function markAsPaid(PaymentRequest $paymentRequest, int $userId, string $paymentMethod, string $sourceAccount): PaymentRequest
+    {
+        $paymentRequest->update([
+            'status' => 'paid',
+            'payment_status' => 'paid',
+            'payment_method' => $paymentMethod,
+            'source_account' => $sourceAccount,
+            'paid_at' => now(),
+            'updated_by' => $userId,
+        ]);
+
+        return $paymentRequest->refresh();
+    }
+
     private function syncItems(PaymentRequest $paymentRequest, array $items): void
     {
         $totals = ['total' => 0, 'tax' => 0, 'net' => 0];
