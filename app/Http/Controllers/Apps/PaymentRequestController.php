@@ -36,6 +36,9 @@ class PaymentRequestController extends Controller
                         ->orWhere('status', 'like', "%{$search}%");
                 });
             })
+            ->when(request('status'), function ($query, string $status) {
+                $query->where('status', $status);
+            })
             ->latest('request_date')
             ->latest('id')
             ->paginate(10)

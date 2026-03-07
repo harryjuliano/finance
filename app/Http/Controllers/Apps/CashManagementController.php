@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Apps;
 
 use App\Http\Controllers\Controller;
+use App\Models\PaymentRequest;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -54,75 +55,76 @@ class CashManagementController extends Controller
 
     public function treasury(): Response
     {
+        $paymentRequests = PaymentRequest::query()
+            ->with(['items.partner:id,name'])
+            ->whereIn('status', [
+                'submitted',
+                'under_verification',
+                'verified',
+                'waiting_approval',
+                'approved',
+                'ready_to_pay',
+                'paid',
+            ])
+            ->latest('due_date')
+            ->latest('id')
+            ->limit(20)
+            ->get();
+
+        $mapExecutionStatus = static function (PaymentRequest $paymentRequest): string {
+            if ($paymentRequest->status === 'paid' || $paymentRequest->payment_status === 'paid') {
+                return 'paid';
+            }
+
+            if (in_array($paymentRequest->status, ['approved', 'ready_to_pay'], true)) {
+                return 'ready';
+            }
+
+            return 'queued';
+        };
+
+        $executionQueue = $paymentRequests->map(function (PaymentRequest $paymentRequest) use ($mapExecutionStatus) {
+            $executionStatus = $mapExecutionStatus($paymentRequest);
+
+            return [
+                'request_no' => $paymentRequest->request_no,
+                'vendor' => $paymentRequest->items->first()?->partner?->name ?? '-',
+                'due_date' => optional($paymentRequest->due_date)->format('d M Y') ?? '-',
+                'payment_method' => '-',
+                'source_account' => '-',
+                'amount' => 'Rp '.number_format((float) $paymentRequest->net_amount, 0, ',', '.'),
+                'status' => $executionStatus,
+                'status_label' => ucfirst($executionStatus),
+            ];
+        })->values();
+
+        $readyCount = $paymentRequests->filter(fn (PaymentRequest $paymentRequest): bool => $mapExecutionStatus($paymentRequest) === 'ready')->count();
+        $queuedCount = $paymentRequests->filter(fn (PaymentRequest $paymentRequest): bool => $mapExecutionStatus($paymentRequest) === 'queued')->count();
+        $paidToday = $paymentRequests->filter(function (PaymentRequest $paymentRequest): bool {
+            return ($paymentRequest->status === 'paid' || $paymentRequest->payment_status === 'paid')
+                && optional($paymentRequest->updated_at)->isToday();
+        });
+        $paidTodayCount = $paidToday->count();
+        $paidTodayAmount = $paidToday->sum(fn (PaymentRequest $paymentRequest): float => (float) $paymentRequest->net_amount);
+
         return Inertia::render('Apps/CashManagement/Treasury/Index', [
             'summary' => [
-                ['label' => 'Ready to Execute', 'value' => '12 request', 'status_filter' => 'ready'],
-                ['label' => 'Queued in Bank Portal', 'value' => '4 request', 'status_filter' => 'queued'],
-                ['label' => 'Executed Today', 'value' => '7 request', 'status_filter' => 'paid'],
-                ['label' => 'Total Amount Today', 'value' => 'Rp 438.750.000', 'status_filter' => null],
+                ['label' => 'Ready to Execute', 'value' => "{$readyCount} request", 'status_filter' => 'approved'],
+                ['label' => 'Queued in Process', 'value' => "{$queuedCount} request", 'status_filter' => 'submitted'],
+                ['label' => 'Executed Today', 'value' => "{$paidTodayCount} request", 'status_filter' => 'paid'],
+                ['label' => 'Total Amount Today', 'value' => 'Rp '.number_format((float) $paidTodayAmount, 0, ',', '.'), 'status_filter' => null],
             ],
-            'executionQueue' => [
-                [
-                    'request_no' => 'PR-2026-03-018',
-                    'vendor' => 'PT Sumber Logistik Nusantara',
-                    'due_date' => '08 Mar 2026',
-                    'payment_method' => 'Bank Transfer (BCA)',
-                    'source_account' => 'BCA Operasional - 0912233445',
-                    'amount' => 'Rp 125.000.000',
-                    'status' => 'ready',
-                    'status_label' => 'Ready',
-                ],
-                [
-                    'request_no' => 'PR-2026-03-017',
-                    'vendor' => 'CV Prima Teknologi Kantor',
-                    'due_date' => '08 Mar 2026',
-                    'payment_method' => 'Virtual Account',
-                    'source_account' => 'Mandiri AP - 1400099112',
-                    'amount' => 'Rp 48.750.000',
-                    'status' => 'queued',
-                    'status_label' => 'Queued',
-                ],
-                [
-                    'request_no' => 'PR-2026-03-015',
-                    'vendor' => 'PT Inti Energi Distribusi',
-                    'due_date' => '09 Mar 2026',
-                    'payment_method' => 'RTGS',
-                    'source_account' => 'BCA Operasional - 0912233445',
-                    'amount' => 'Rp 210.000.000',
-                    'status' => 'ready',
-                    'status_label' => 'Ready',
-                ],
-                [
-                    'request_no' => 'PR-2026-03-011',
-                    'vendor' => 'PT Karya Bersama Catering',
-                    'due_date' => '07 Mar 2026',
-                    'payment_method' => 'Transfer Online',
-                    'source_account' => 'BCA Operasional - 0912233445',
-                    'amount' => 'Rp 8.500.000',
-                    'status' => 'paid',
-                    'status_label' => 'Paid',
-                ],
-            ],
-            'recentExecutions' => [
-                [
-                    'reference' => 'PAY-2026-03-0094',
-                    'time' => '07 Mar 2026 10:14',
-                    'bank_channel' => 'BCA Corporate KlikBCA',
-                    'amount' => 'Rp 18.200.000',
-                ],
-                [
-                    'reference' => 'PAY-2026-03-0093',
-                    'time' => '07 Mar 2026 09:58',
-                    'bank_channel' => 'Mandiri Cash Management',
-                    'amount' => 'Rp 42.500.000',
-                ],
-                [
-                    'reference' => 'PAY-2026-03-0091',
-                    'time' => '07 Mar 2026 09:31',
-                    'bank_channel' => 'BCA Corporate KlikBCA',
-                    'amount' => 'Rp 77.000.000',
-                ],
-            ],
+            'executionQueue' => $executionQueue,
+            'recentExecutions' => $paymentRequests
+                ->filter(fn (PaymentRequest $paymentRequest): bool => $mapExecutionStatus($paymentRequest) === 'paid')
+                ->take(3)
+                ->map(fn (PaymentRequest $paymentRequest): array => [
+                    'reference' => $paymentRequest->request_no,
+                    'time' => optional($paymentRequest->updated_at)->format('d M Y H:i') ?? '-',
+                    'bank_channel' => 'Bank channel belum diinput',
+                    'amount' => 'Rp '.number_format((float) $paymentRequest->net_amount, 0, ',', '.'),
+                ])
+                ->values(),
         ]);
     }
 

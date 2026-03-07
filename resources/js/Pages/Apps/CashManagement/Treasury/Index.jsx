@@ -28,11 +28,11 @@ export default function Index({ summary, executionQueue, recentExecutions }) {
                     <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                         <div>
                             <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Cash Execution</h1>
-                            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Dummy data untuk memantau antrian pembayaran yang siap dieksekusi treasury.</p>
+                            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Antrian payment request yang diambil dari transaksi Payment Request.</p>
                         </div>
-                        <span className="inline-flex rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-700 dark:bg-sky-900/30 dark:text-sky-300">
-                            Data simulasi (dummy)
-                        </span>
+                        <Link href={route('apps.cash-management.payment-requests.index')} className="inline-flex rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-700 hover:bg-sky-200 dark:bg-sky-900/30 dark:text-sky-300 dark:hover:bg-sky-900/50">
+                            Buka Payment Requests
+                        </Link>
                     </div>
 
                     <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4">
@@ -69,7 +69,7 @@ export default function Index({ summary, executionQueue, recentExecutions }) {
                         <Table.Tbody>
                             {executionQueue.map((item) => (
                                 <tr key={item.request_no} className="hover:bg-gray-100 dark:hover:bg-gray-900">
-                                    <Table.Td>{item.request_no}</Table.Td>
+                                    <Table.Td><Link href={`${route('apps.cash-management.payment-requests.index')}?search=${encodeURIComponent(item.request_no)}`} className="text-blue-600 hover:underline dark:text-blue-400">{item.request_no}</Link></Table.Td>
                                     <Table.Td>{item.vendor}</Table.Td>
                                     <Table.Td>{item.due_date}</Table.Td>
                                     <Table.Td>{item.payment_method}</Table.Td>
