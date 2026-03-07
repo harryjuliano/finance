@@ -16,6 +16,7 @@ use App\Models\Project;
 use App\Models\TransactionCategory;
 use App\Models\User;
 use App\Services\PaymentRequestService;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -90,6 +91,24 @@ class PaymentRequestController extends Controller
     public function destroy(PaymentRequest $payment_request)
     {
         $payment_request->delete();
+
+        return back();
+    }
+
+
+    public function markPaid(Request $request, PaymentRequest $payment_request)
+    {
+        $validated = $request->validate([
+            'payment_method' => ['required', 'string', 'max:100'],
+            'source_account' => ['required', 'string', 'max:150'],
+        ]);
+
+        $this->paymentRequestService->markAsPaid(
+            $payment_request,
+            (int) $request->user()->id,
+            $validated['payment_method'],
+            $validated['source_account'],
+        );
 
         return back();
     }

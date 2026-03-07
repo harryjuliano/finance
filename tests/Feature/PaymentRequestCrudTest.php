@@ -171,3 +171,62 @@ it('can perform payment request crud', function () {
 
     $this->assertSoftDeleted('payment_requests', ['id' => $paymentRequest->id]);
 });
+
+it('can mark payment request as paid from treasury execution', function () {
+    $user = User::factory()->create();
+
+    $company = Company::query()->create([
+        'code' => 'CMP-002',
+        'name' => 'PT Treasury Test',
+        'status' => 'active',
+    ]);
+
+    $currency = Currency::query()->create([
+        'code' => 'IDT',
+        'name' => 'Rupiah Test',
+        'symbol' => 'Rp',
+        'is_base_currency' => false,
+        'status' => 'active',
+    ]);
+
+    $paymentRequest = PaymentRequest::query()->create([
+        'company_id' => $company->id,
+        'branch_id' => null,
+        'department_id' => null,
+        'cost_center_id' => null,
+        'project_id' => null,
+        'requester_id' => $user->id,
+        'request_no' => 'PR-2026-0901',
+        'request_date' => now()->toDateString(),
+        'priority' => 'normal',
+        'due_date' => now()->addDays(3)->toDateString(),
+        'currency_id' => $currency->id,
+        'exchange_rate' => 1,
+        'total_amount' => 100000,
+        'tax_amount' => 0,
+        'net_amount' => 100000,
+        'description' => 'Treasury execution test',
+        'status' => 'approved',
+        'verification_status' => 'verified',
+        'approval_status' => 'approved',
+        'payment_status' => 'unpaid',
+        'document_complete_flag' => true,
+        'created_by' => $user->id,
+        'updated_by' => $user->id,
+    ]);
+
+    $this->actingAs($user)
+        ->post(route('apps.cash-management.payment-requests.mark-paid', $paymentRequest), [
+            'payment_method' => 'Transfer Bank',
+            'source_account' => 'Bank BCA Operasional',
+        ])
+        ->assertRedirect();
+
+    $paymentRequest->refresh();
+
+    expect($paymentRequest->status)->toBe('paid');
+    expect($paymentRequest->payment_status)->toBe('paid');
+    expect($paymentRequest->payment_method)->toBe('Transfer Bank');
+    expect($paymentRequest->source_account)->toBe('Bank BCA Operasional');
+    expect($paymentRequest->paid_at)->not->toBeNull();
+});

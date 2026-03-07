@@ -1,8 +1,10 @@
+import Button from '@/Components/Button';
 import Card from '@/Components/Card';
 import Table from '@/Components/Table';
 import AppLayout from '@/Layouts/AppLayout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { IconCheck, IconClockHour4, IconFileText, IconWallet } from '@tabler/icons-react';
+import { useState } from 'react';
 
 const statusClassMap = {
     ready: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
@@ -10,13 +12,39 @@ const statusClassMap = {
     paid: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
 };
 
-export default function Index({ summary, executionQueue, recentExecutions }) {
+export default function Index({ summary, executionQueue, recentExecutions, paymentMethodOptions, sourceAccountOptions }) {
     const buildFilteredUrl = (statusFilter) => {
         if (!statusFilter) {
             return route('apps.cash-management.payment-requests.index');
         }
 
         return `${route('apps.cash-management.payment-requests.index')}?status=${statusFilter}`;
+    };
+
+    const [executionForm, setExecutionForm] = useState(() => executionQueue.reduce((carry, item) => ({
+        ...carry,
+        [item.id]: {
+            payment_method: item.payment_method !== '-' ? item.payment_method : paymentMethodOptions[0] ?? '',
+            source_account: item.source_account !== '-' ? item.source_account : sourceAccountOptions[0] ?? '',
+        },
+    }), {}));
+
+    const updateExecutionField = (id, field, value) => {
+        setExecutionForm((prev) => ({
+            ...prev,
+            [id]: {
+                ...(prev[id] ?? {}),
+                [field]: value,
+            },
+        }));
+    };
+
+    const markAsPaid = (id) => {
+        const payload = executionForm[id] ?? { payment_method: '', source_account: '' };
+
+        router.post(route('apps.cash-management.payment-requests.mark-paid', id), payload, {
+            preserveScroll: true,
+        });
     };
 
     return (
@@ -64,6 +92,7 @@ export default function Index({ summary, executionQueue, recentExecutions }) {
                                 <Table.Th>Source Account</Table.Th>
                                 <Table.Th>Amount</Table.Th>
                                 <Table.Th>Status</Table.Th>
+                                <Table.Th>Aksi</Table.Th>
                             </tr>
                         </Table.Thead>
                         <Table.Tbody>
@@ -72,13 +101,44 @@ export default function Index({ summary, executionQueue, recentExecutions }) {
                                     <Table.Td><Link href={`${route('apps.cash-management.payment-requests.index')}?search=${encodeURIComponent(item.request_no)}`} className="text-blue-600 hover:underline dark:text-blue-400">{item.request_no}</Link></Table.Td>
                                     <Table.Td>{item.vendor}</Table.Td>
                                     <Table.Td>{item.due_date}</Table.Td>
-                                    <Table.Td>{item.payment_method}</Table.Td>
-                                    <Table.Td>{item.source_account}</Table.Td>
+                                    <Table.Td>
+                                        <select
+                                            value={executionForm[item.id]?.payment_method ?? ''}
+                                            onChange={(event) => updateExecutionField(item.id, 'payment_method', event.target.value)}
+                                            className="w-full rounded-md border border-gray-300 bg-white px-2 py-1 text-sm dark:border-gray-700 dark:bg-gray-800"
+                                            disabled={item.status === 'paid'}
+                                        >
+                                            {paymentMethodOptions.map((method) => (
+                                                <option key={method} value={method}>{method}</option>
+                                            ))}
+                                        </select>
+                                    </Table.Td>
+                                    <Table.Td>
+                                        <select
+                                            value={executionForm[item.id]?.source_account ?? ''}
+                                            onChange={(event) => updateExecutionField(item.id, 'source_account', event.target.value)}
+                                            className="w-full rounded-md border border-gray-300 bg-white px-2 py-1 text-sm dark:border-gray-700 dark:bg-gray-800"
+                                            disabled={item.status === 'paid'}
+                                        >
+                                            {sourceAccountOptions.map((account) => (
+                                                <option key={account} value={account}>{account}</option>
+                                            ))}
+                                        </select>
+                                    </Table.Td>
                                     <Table.Td>{item.amount}</Table.Td>
                                     <Table.Td>
                                         <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${statusClassMap[item.status]}`}>
                                             {item.status_label}
                                         </span>
+                                    </Table.Td>
+                                    <Table.Td>
+                                        <Button
+                                            type={'button'}
+                                            variant={'emerald'}
+                                            label={item.status === 'paid' ? 'Sudah Paid' : 'Mark as Paid'}
+                                            onClick={() => markAsPaid(item.id)}
+                                            disabled={item.status === 'paid'}
+                                        />
                                     </Table.Td>
                                 </tr>
                             ))}
@@ -92,7 +152,7 @@ export default function Index({ summary, executionQueue, recentExecutions }) {
                         <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
                             <li className="flex items-start gap-2"><IconFileText size={16} className="mt-0.5 text-blue-500" /> Pilih request berstatus approved dan cek dokumen pendukung.</li>
                             <li className="flex items-start gap-2"><IconWallet size={16} className="mt-0.5 text-amber-500" /> Verifikasi saldo sumber dana termasuk biaya transfer.</li>
-                            <li className="flex items-start gap-2"><IconCheck size={16} className="mt-0.5 text-emerald-500" /> Upload bukti transfer lalu update status paid.</li>
+                            <li className="flex items-start gap-2"><IconCheck size={16} className="mt-0.5 text-emerald-500" /> Pilih metode + source account, lalu update status paid.</li>
                         </ul>
                     </Card>
 
