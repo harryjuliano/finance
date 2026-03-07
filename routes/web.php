@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Apps\CashManagementController;
 use App\Http\Controllers\Apps\MasterDataController;
+use App\Http\Controllers\Apps\TransactionController;
 use App\Http\Controllers\Apps\PermissionController;
 use App\Http\Controllers\Apps\RoleController;
 use App\Http\Controllers\Apps\UserController;
@@ -31,7 +32,7 @@ Route::group(['prefix' => 'apps', 'as' => 'apps.' , 'middleware' => ['auth']], f
 
     Route::prefix('/cash-management')->as('cash-management.')->group(function () {
         Route::resource('/master-data', MasterDataController::class)->except(['create', 'edit', 'show']);
-        Route::get('/transactions', [CashManagementController::class, 'transactions'])->name('transactions');
+        Route::resource('/transactions', TransactionController::class)->except(['create', 'edit', 'show']);
         Route::get('/approvals', [CashManagementController::class, 'approvals'])->name('approvals');
         Route::get('/treasury', [CashManagementController::class, 'treasury'])->name('treasury');
         Route::get('/reconciliation', [CashManagementController::class, 'reconciliation'])->name('reconciliation');
