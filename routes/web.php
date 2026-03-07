@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Apps\CashManagementController;
+use App\Http\Controllers\Apps\MasterDataController;
 use App\Http\Controllers\Apps\PermissionController;
 use App\Http\Controllers\Apps\RoleController;
 use App\Http\Controllers\Apps\UserController;
@@ -29,7 +30,7 @@ Route::group(['prefix' => 'apps', 'as' => 'apps.' , 'middleware' => ['auth']], f
     Route::get('/dashboard', [CashManagementController::class, 'dashboard'])->name('dashboard');
 
     Route::prefix('/cash-management')->as('cash-management.')->group(function () {
-        Route::get('/master-data', [CashManagementController::class, 'masterData'])->name('master-data');
+        Route::resource('/master-data', MasterDataController::class)->except(['create', 'edit', 'show']);
         Route::get('/transactions', [CashManagementController::class, 'transactions'])->name('transactions');
         Route::get('/approvals', [CashManagementController::class, 'approvals'])->name('approvals');
         Route::get('/treasury', [CashManagementController::class, 'treasury'])->name('treasury');
