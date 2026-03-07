@@ -3,9 +3,8 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Spatie\Permission\Models\Role;
 
 class RoleTableSeeder extends Seeder
 {
@@ -14,34 +13,81 @@ class RoleTableSeeder extends Seeder
      */
     public function run(): void
     {
-        // get all permissions data where name like users
-        $user_permissions = Permission::where('name', 'like', '%users%')->get();
+        // Finance operational permissions
+        $financePermissions = Permission::whereIn('name', [
+            'dashboard-access',
+            'cash-management-access',
+            'master-data-access',
+            'transactions-access',
+            'approvals-access',
+            'treasury-access',
+            'reconciliation-access',
+            'reports-access',
+            'administration-access',
+        ])->get();
 
-        // create new role
-        $user_group = Role::create(['name' => 'users-access']);
+        $financeStaff = Role::create(['name' => 'finance-staff']);
+        $financeStaff->givePermissionTo([
+            'dashboard-access',
+            'cash-management-access',
+            'transactions-access',
+            'reports-access',
+        ]);
 
-        // assign a permissions to a access role
-        $user_group->givePermissionTo($user_permissions);
+        $financeSupervisor = Role::create(['name' => 'finance-supervisor']);
+        $financeSupervisor->givePermissionTo([
+            'dashboard-access',
+            'cash-management-access',
+            'transactions-access',
+            'approvals-access',
+            'reports-access',
+        ]);
 
-        // get all permissions data where name like roles
-        $role_permissions = Permission::where('name', 'like', '%roles%')->get();
+        $financeManager = Role::create(['name' => 'finance-manager']);
+        $financeManager->givePermissionTo([
+            'dashboard-access',
+            'cash-management-access',
+            'master-data-access',
+            'transactions-access',
+            'approvals-access',
+            'treasury-access',
+            'reconciliation-access',
+            'reports-access',
+        ]);
 
-        // create new role
-        $role_group = Role::create(['name' => 'roles-access']);
+        $cashierTreasury = Role::create(['name' => 'cashier-treasury']);
+        $cashierTreasury->givePermissionTo([
+            'dashboard-access',
+            'cash-management-access',
+            'transactions-access',
+            'treasury-access',
+            'reports-access',
+        ]);
 
-        // assign a permissions to a role
-        $role_group->givePermissionTo($role_permissions);
+        $auditor = Role::create(['name' => 'auditor']);
+        $auditor->givePermissionTo([
+            'dashboard-access',
+            'cash-management-access',
+            'reports-access',
+            'reconciliation-access',
+        ]);
 
-        //  get all permissions data where name like permissions
-        $permission_permissions = Permission::where('name', 'like', '%permissions%')->get();
+        $adminSystem = Role::create(['name' => 'admin-system']);
+        $adminSystem->givePermissionTo($financePermissions);
 
-        // create new role
-        $permission_group = Role::create(['name' => 'permission-access']);
+        // Existing user management groups
+        $userPermissions = Permission::where('name', 'like', '%users%')->get();
+        $userGroup = Role::create(['name' => 'users-access']);
+        $userGroup->givePermissionTo($userPermissions);
 
-        // assign a permissions to a role
-        $permission_group->givePermissionTo($permission_permissions);
+        $rolePermissions = Permission::where('name', 'like', '%roles%')->get();
+        $roleGroup = Role::create(['name' => 'roles-access']);
+        $roleGroup->givePermissionTo($rolePermissions);
 
-        // create new role
+        $permissionPermissions = Permission::where('name', 'like', '%permissions%')->get();
+        $permissionGroup = Role::create(['name' => 'permission-access']);
+        $permissionGroup->givePermissionTo($permissionPermissions);
+
         Role::create(['name' => 'super-admin']);
     }
 }
