@@ -5,7 +5,16 @@ namespace App\Http\Controllers\Apps;
 use App\Actions\PaymentRequest\SubmitPaymentRequestAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PaymentRequestRequest;
+use App\Models\Branch;
+use App\Models\BusinessPartner;
+use App\Models\Company;
+use App\Models\CostCenter;
+use App\Models\Currency;
+use App\Models\Department;
 use App\Models\PaymentRequest;
+use App\Models\Project;
+use App\Models\TransactionCategory;
+use App\Models\User;
 use App\Services\PaymentRequestService;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -19,7 +28,7 @@ class PaymentRequestController extends Controller
     public function index(): Response
     {
         $paymentRequests = PaymentRequest::query()
-            ->with('requester:id,name')
+            ->with(['requester:id,name', 'items:id,payment_request_id,description,qty,unit_price,tax_amount,category_id,partner_id'])
             ->when(request('search'), function ($query, string $search) {
                 $query->where(function ($subQuery) use ($search) {
                     $subQuery->where('request_no', 'like', "%{$search}%")
@@ -40,6 +49,17 @@ class PaymentRequestController extends Controller
                 'cancelled', 'closed',
             ],
             'priorities' => ['low', 'normal', 'high', 'urgent'],
+            'references' => [
+                'companies' => Company::query()->select('id', 'name')->orderBy('name')->get(),
+                'branches' => Branch::query()->select('id', 'name')->orderBy('name')->get(),
+                'departments' => Department::query()->select('id', 'name')->orderBy('name')->get(),
+                'costCenters' => CostCenter::query()->select('id', 'name')->orderBy('name')->get(),
+                'projects' => Project::query()->select('id', 'name')->orderBy('name')->get(),
+                'currencies' => Currency::query()->select('id', 'code', 'name')->orderBy('code')->get(),
+                'requesters' => User::query()->select('id', 'name')->orderBy('name')->get(),
+                'categories' => TransactionCategory::query()->select('id', 'name')->orderBy('name')->get(),
+                'partners' => BusinessPartner::query()->select('id', 'name')->orderBy('name')->get(),
+            ],
         ]);
     }
 
