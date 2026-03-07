@@ -97,6 +97,13 @@ it('can perform payment request crud', function () {
                     'tax_amount' => 50000,
                     'category_id' => $category->id,
                     'partner_id' => $partner->id,
+                    'allocations' => [
+                        [
+                            'cost_center_id' => $costCenter->id,
+                            'project_id' => $project->id,
+                            'amount' => 500000,
+                        ],
+                    ],
                 ],
             ],
         ])
@@ -110,6 +117,7 @@ it('can perform payment request crud', function () {
     expect((float) $paymentRequest->tax_amount)->toBe(50000.0);
     expect((float) $paymentRequest->net_amount)->toBe(550000.0);
     expect($paymentRequest->items)->toHaveCount(1);
+    expect($paymentRequest->items->first()->allocations)->toHaveCount(1);
 
     $this->actingAs($user)
         ->put(route('apps.cash-management.payment-requests.update', $paymentRequest), [
@@ -135,6 +143,13 @@ it('can perform payment request crud', function () {
                     'tax_amount' => 30000,
                     'category_id' => $category->id,
                     'partner_id' => $partner->id,
+                    'allocations' => [
+                        [
+                            'cost_center_id' => $costCenter->id,
+                            'project_id' => $project->id,
+                            'amount' => 300000,
+                        ],
+                    ],
                 ],
             ],
         ])
@@ -148,6 +163,7 @@ it('can perform payment request crud', function () {
     expect((float) $paymentRequest->tax_amount)->toBe(30000.0);
     expect((float) $paymentRequest->net_amount)->toBe(330000.0);
     expect($paymentRequest->items()->count())->toBe(1);
+    expect($paymentRequest->items()->first()->allocations()->count())->toBe(1);
 
     $this->actingAs($user)
         ->delete(route('apps.cash-management.payment-requests.destroy', $paymentRequest))
