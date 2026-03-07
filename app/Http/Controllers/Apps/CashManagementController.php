@@ -54,11 +54,75 @@ class CashManagementController extends Controller
 
     public function treasury(): Response
     {
-        return Inertia::render('Apps/CashManagement/ModulePage', [
-            'title' => 'Payment Execution',
-            'description' => 'Eksekusi pembayaran dari payment request ter-approve termasuk upload payment proof.',
-            'modules' => ['Selected Requests', 'Source Accounts', 'Payment Method', 'Transfer Fee', 'Proof Upload'],
-            'keyControls' => ['Bukti transfer wajib', 'Kontrol rekening sumber', 'Status paid & posted terpisah'],
+        return Inertia::render('Apps/CashManagement/Treasury/Index', [
+            'summary' => [
+                ['label' => 'Ready to Execute', 'value' => '12 request'],
+                ['label' => 'Queued in Bank Portal', 'value' => '4 request'],
+                ['label' => 'Executed Today', 'value' => '7 request'],
+                ['label' => 'Total Amount Today', 'value' => 'Rp 438.750.000'],
+            ],
+            'executionQueue' => [
+                [
+                    'request_no' => 'PR-2026-03-018',
+                    'vendor' => 'PT Sumber Logistik Nusantara',
+                    'due_date' => '08 Mar 2026',
+                    'payment_method' => 'Bank Transfer (BCA)',
+                    'source_account' => 'BCA Operasional - 0912233445',
+                    'amount' => 'Rp 125.000.000',
+                    'status' => 'ready',
+                    'status_label' => 'Ready',
+                ],
+                [
+                    'request_no' => 'PR-2026-03-017',
+                    'vendor' => 'CV Prima Teknologi Kantor',
+                    'due_date' => '08 Mar 2026',
+                    'payment_method' => 'Virtual Account',
+                    'source_account' => 'Mandiri AP - 1400099112',
+                    'amount' => 'Rp 48.750.000',
+                    'status' => 'queued',
+                    'status_label' => 'Queued',
+                ],
+                [
+                    'request_no' => 'PR-2026-03-015',
+                    'vendor' => 'PT Inti Energi Distribusi',
+                    'due_date' => '09 Mar 2026',
+                    'payment_method' => 'RTGS',
+                    'source_account' => 'BCA Operasional - 0912233445',
+                    'amount' => 'Rp 210.000.000',
+                    'status' => 'ready',
+                    'status_label' => 'Ready',
+                ],
+                [
+                    'request_no' => 'PR-2026-03-011',
+                    'vendor' => 'PT Karya Bersama Catering',
+                    'due_date' => '07 Mar 2026',
+                    'payment_method' => 'Transfer Online',
+                    'source_account' => 'BCA Operasional - 0912233445',
+                    'amount' => 'Rp 8.500.000',
+                    'status' => 'paid',
+                    'status_label' => 'Paid',
+                ],
+            ],
+            'recentExecutions' => [
+                [
+                    'reference' => 'PAY-2026-03-0094',
+                    'time' => '07 Mar 2026 10:14',
+                    'bank_channel' => 'BCA Corporate KlikBCA',
+                    'amount' => 'Rp 18.200.000',
+                ],
+                [
+                    'reference' => 'PAY-2026-03-0093',
+                    'time' => '07 Mar 2026 09:58',
+                    'bank_channel' => 'Mandiri Cash Management',
+                    'amount' => 'Rp 42.500.000',
+                ],
+                [
+                    'reference' => 'PAY-2026-03-0091',
+                    'time' => '07 Mar 2026 09:31',
+                    'bank_channel' => 'BCA Corporate KlikBCA',
+                    'amount' => 'Rp 77.000.000',
+                ],
+            ],
         ]);
     }
 
