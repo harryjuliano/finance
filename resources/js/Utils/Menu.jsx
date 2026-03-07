@@ -39,6 +39,14 @@ export default function Menu() {
                     icon: <IconBuildingBank size={20} strokeWidth={1.5} />,
                     permissions: hasAnyPermission(['dashboard-access']),
                 },
+
+                {
+                    title: 'Phase 1 Tracker',
+                    href: '/apps/cash-management/phase-1',
+                    active: url.startsWith('/apps/cash-management/phase-1'),
+                    icon: <IconChecklist size={20} strokeWidth={1.5} />,
+                    permissions: hasAnyPermission(['dashboard-access']),
+                },
                 {
                     title: 'Cash Execution',
                     href: '/apps/cash-management/treasury',

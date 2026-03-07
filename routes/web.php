@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Apps\CashManagementController;
 use App\Http\Controllers\Apps\PaymentRequestController;
+use App\Http\Controllers\Apps\PhaseOneController;
 use App\Http\Controllers\Apps\PermissionController;
 use App\Http\Controllers\Apps\RoleController;
 use App\Http\Controllers\Apps\UserController;
@@ -31,6 +32,7 @@ Route::group(['prefix' => 'apps', 'as' => 'apps.', 'middleware' => ['auth']], fu
     Route::prefix('/cash-management')->as('cash-management.')->group(function () {
         Route::resource('/payment-requests', PaymentRequestController::class)->except(['create', 'edit', 'show']);
         Route::post('/payment-requests/{payment_request}/submit', [PaymentRequestController::class, 'submit'])->name('payment-requests.submit');
+        Route::get('/phase-1', [PhaseOneController::class, 'index'])->name('phase-1.index');
 
         Route::get('/approvals', [CashManagementController::class, 'approvals'])->name('approvals');
         Route::get('/treasury', [CashManagementController::class, 'treasury'])->name('treasury');
