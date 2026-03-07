@@ -4,6 +4,7 @@ import {
     IconBuildingBank,
     IconChecklist,
     IconClipboardCheck,
+    IconDatabase,
     IconLayout2,
     IconReportAnalytics,
     IconSettings,
@@ -37,6 +38,14 @@ export default function Menu() {
                     href: '/apps/cash-management/payment-requests',
                     active: url.startsWith('/apps/cash-management/payment-requests'),
                     icon: <IconBuildingBank size={20} strokeWidth={1.5} />,
+                    permissions: hasAnyPermission(['dashboard-access']),
+                },
+
+                {
+                    title: 'Master Data',
+                    href: '/apps/cash-management/master-data',
+                    active: url.startsWith('/apps/cash-management/master-data'),
+                    icon: <IconDatabase size={20} strokeWidth={1.5} />,
                     permissions: hasAnyPermission(['dashboard-access']),
                 },
 
