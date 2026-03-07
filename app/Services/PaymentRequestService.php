@@ -55,7 +55,7 @@ class PaymentRequestService
             $taxAmount = (float) ($item['tax_amount'] ?? 0);
             $netAmount = $amount + $taxAmount;
 
-            $paymentRequest->items()->create([
+            $createdItem = $paymentRequest->items()->create([
                 'category_id' => $item['category_id'] ?? null,
                 'partner_id' => $item['partner_id'] ?? null,
                 'description' => $item['description'],
@@ -68,6 +68,22 @@ class PaymentRequestService
                 'reference_type' => $item['reference_type'] ?? null,
                 'reference_id' => $item['reference_id'] ?? null,
             ]);
+
+            $allocations = $item['allocations'] ?? [
+                [
+                    'cost_center_id' => $paymentRequest->cost_center_id,
+                    'project_id' => $paymentRequest->project_id,
+                    'amount' => $amount,
+                ],
+            ];
+
+            foreach ($allocations as $allocation) {
+                $createdItem->allocations()->create([
+                    'cost_center_id' => $allocation['cost_center_id'] ?? null,
+                    'project_id' => $allocation['project_id'] ?? null,
+                    'amount' => $allocation['amount'] ?? 0,
+                ]);
+            }
 
             $totals['total'] += $amount;
             $totals['tax'] += $taxAmount;

@@ -37,6 +37,10 @@ class PaymentRequestRequest extends FormRequest
             'items.*.tax_amount' => ['nullable', 'numeric', 'min:0'],
             'items.*.category_id' => ['nullable', 'integer', 'exists:transaction_categories,id'],
             'items.*.partner_id' => ['nullable', 'integer', 'exists:business_partners,id'],
+            'items.*.allocations' => ['nullable', 'array', 'min:1'],
+            'items.*.allocations.*.cost_center_id' => ['nullable', 'integer', 'exists:cost_centers,id'],
+            'items.*.allocations.*.project_id' => ['nullable', 'integer', 'exists:projects,id'],
+            'items.*.allocations.*.amount' => ['required_with:items.*.allocations', 'numeric', 'min:0.01'],
         ];
     }
 }

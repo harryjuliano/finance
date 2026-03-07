@@ -28,7 +28,7 @@ class PaymentRequestController extends Controller
     public function index(): Response
     {
         $paymentRequests = PaymentRequest::query()
-            ->with(['requester:id,name', 'items:id,payment_request_id,description,qty,unit_price,tax_amount,category_id,partner_id'])
+            ->with(['requester:id,name', 'items.allocations'])
             ->when(request('search'), function ($query, string $search) {
                 $query->where(function ($subQuery) use ($search) {
                     $subQuery->where('request_no', 'like', "%{$search}%")
