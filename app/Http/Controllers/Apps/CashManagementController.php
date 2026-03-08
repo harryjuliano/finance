@@ -13,12 +13,12 @@ class CashManagementController extends Controller
     {
         return Inertia::render('Apps/CashManagement/Dashboard', [
             'kpis' => [
-                ['label' => 'Total Cash Balance', 'value' => 'Rp 213.300.000'],
-                ['label' => 'Total Bank Balance', 'value' => 'Rp 2.200.700.000'],
-                ['label' => 'Today Inflow', 'value' => 'Rp 160.000.000'],
-                ['label' => 'Today Outflow', 'value' => 'Rp 124.000.000'],
-                ['label' => 'Pending Approvals', 'value' => '18 dokumen'],
-                ['label' => 'Overdue Payments', 'value' => '6 dokumen'],
+                ['label' => 'Ringkasan Saldo Kas & Bank', 'value' => 'Rp 2.414.000.000'],
+                ['label' => 'Total Payment Request Pending', 'value' => '18 dokumen'],
+                ['label' => 'Total Pembayaran Hari Ini', 'value' => 'Rp 124.000.000'],
+                ['label' => 'Cash Flow Bulan Berjalan', 'value' => 'In: Rp 1.820.000.000 / Out: Rp 1.410.000.000'],
+                ['label' => 'Transaksi Menunggu Approval', 'value' => '12 transaksi'],
+                ['label' => 'Rekonsiliasi Belum Selesai', 'value' => '4 akun'],
             ],
             'cashflow' => [
                 ['month' => 'Jan', 'in' => 1350, 'out' => 980],
@@ -29,10 +29,11 @@ class CashManagementController extends Controller
                 ['month' => 'Jun', 'in' => 1820, 'out' => 1410],
             ],
             'pendingTasks' => [
-                ['task' => 'Payment Request menunggu verifikasi', 'count' => 9],
-                ['task' => 'Payment Request menunggu approval', 'count' => 6],
-                ['task' => 'Dokumen compliance belum lengkap', 'count' => 3],
-                ['task' => 'Unmatched bank statement', 'count' => 4],
+                ['task' => 'Buat Payment Request', 'count' => 7],
+                ['task' => 'Input Penerimaan', 'count' => 5],
+                ['task' => 'Execute Payment', 'count' => 6],
+                ['task' => 'Approval Queue', 'count' => 12],
+                ['task' => 'Rekonsiliasi belum selesai', 'count' => 4],
             ],
             'accountBalances' => [
                 ['account' => 'Kas Besar - Head Office', 'type' => 'cash', 'balance' => 'Rp 185.500.000'],
@@ -41,6 +42,88 @@ class CashManagementController extends Controller
                 ['account' => 'Petty Cash Cabang Surabaya', 'type' => 'cash', 'balance' => 'Rp 27.800.000'],
             ],
         ]);
+    }
+
+    public function workspace(string $module): Response
+    {
+        $workspaces = [
+            'master-data' => [
+                'title' => 'Master Data',
+                'description' => 'Semua referensi transaksi dikelola di sini untuk menjaga konsistensi input.',
+                'modules' => ['Business Unit / Company', 'Departemen', 'Cost Center / Project', 'Vendor / Supplier', 'Customer', 'Bank & Cash Account', 'COA / Chart of Account', 'Transaction Category', 'Payment Method', 'Currency', 'Tax Master', 'Document Type', 'Attachment Category'],
+                'keyControls' => ['Single source of truth master transaksi', 'Validasi data referensi sebelum transaksi', 'Mendukung audit trail ISO 9001'],
+            ],
+            'payment-request' => [
+                'title' => 'Payment Request',
+                'description' => 'Alur pengajuan pembayaran dari Draft sampai Ready for Payment.',
+                'modules' => ['Semua Payment Request', 'Buat Payment Request', 'Draft Request', 'Menunggu Approval', 'Request Direvisi', 'Request Ditolak', 'Request Disetujui', 'Siap Dibayar', 'Riwayat Payment Request'],
+                'keyControls' => ['Data inti: vendor, jumlah, kategori biaya, cost center', 'Data inti: due date, payment method, lampiran invoice', 'Workflow status: Draft, Submitted, Under Review, Approved, Rejected, Ready for Payment'],
+            ],
+            'approval' => [
+                'title' => 'Approval',
+                'description' => 'Pusat persetujuan untuk Supervisor, Finance Manager, dan Director.',
+                'modules' => ['Menunggu Persetujuan Saya', 'Semua Approval', 'Approval Payment Request', 'Approval Kas Kecil', 'Approval Transfer', 'Approval Adjustment', 'Riwayat Approval'],
+                'keyControls' => ['Aksi approve, reject, request revision', 'Queue approval terpusat lintas proses', 'Riwayat approval mendukung audit ISO 9001'],
+            ],
+            'execute-cash' => [
+                'title' => 'Execute Cash',
+                'description' => 'Treasury mengeksekusi pembayaran setelah approval dengan kontrol bukti bayar.',
+                'modules' => ['Pembayaran Siap Dieksekusi', 'Execute Payment', 'Pembayaran Sebagian', 'Pembayaran Pending', 'Pembayaran Selesai', 'Bukti Pembayaran', 'Riwayat Pembayaran'],
+                'keyControls' => ['Data pembayaran: rekening sumber, metode, referensi transfer', 'Data pembayaran: tanggal bayar dan upload bukti transfer', 'Status: Ready for Payment, Processing, Partially Paid, Paid'],
+            ],
+            'cash-receipt' => [
+                'title' => 'Cash Receipt',
+                'description' => 'Mencatat penerimaan kas dari customer, refund, dan transfer masuk.',
+                'modules' => ['Semua Penerimaan', 'Input Penerimaan', 'Penerimaan Customer', 'Penerimaan Lainnya', 'Transfer Masuk', 'Adjustment Masuk', 'Riwayat Penerimaan'],
+                'keyControls' => ['Monitoring sumber penerimaan kas', 'Klasifikasi penerimaan customer dan non-customer', 'Riwayat penerimaan untuk rekonsiliasi'],
+            ],
+            'transfer-internal' => [
+                'title' => 'Transfer Internal',
+                'description' => 'Memindahkan dana antar rekening perusahaan dengan tracking status transfer.',
+                'modules' => ['Transfer Antar Kas/Bank', 'Daftar Transfer', 'Transfer Pending', 'Transfer Selesai', 'Riwayat Transfer'],
+                'keyControls' => ['Kontrol rekening asal dan tujuan', 'Status pending vs selesai', 'Riwayat transfer untuk audit trail'],
+            ],
+            'petty-cash' => [
+                'title' => 'Petty Cash',
+                'description' => 'Pengelolaan kas kecil mulai dari permintaan dana hingga pertanggungjawaban.',
+                'modules' => ['Saldo Kas Kecil', 'Permintaan Dana', 'Penggunaan Kas Kecil', 'Pengisian Kembali', 'Pertanggungjawaban', 'Riwayat Kas Kecil'],
+                'keyControls' => ['Kontrol saldo kas kecil', 'Siklus penggunaan dan replenishment', 'Riwayat kas kecil untuk compliance'],
+            ],
+            'reconciliation' => [
+                'title' => 'Reconciliation',
+                'description' => 'Mencocokkan transaksi sistem dengan mutasi bank/fisik kas.',
+                'modules' => ['Rekonsiliasi Bank', 'Rekonsiliasi Kas', 'Upload Mutasi Bank', 'Matching Transaksi', 'Selisih Rekonsiliasi', 'Riwayat Rekonsiliasi'],
+                'keyControls' => ['Auto/manual matching', 'Analisis selisih rekonsiliasi', 'Dokumentasi hasil rekonsiliasi'],
+            ],
+            'journal-posting' => [
+                'title' => 'Journal & Posting',
+                'description' => 'Pusat posting jurnal operasional dan adjustment sampai reversal.',
+                'modules' => ['Draft Posting', 'Transaksi Sudah Posting', 'Jurnal Otomatis', 'Jurnal Manual Adjustment', 'Reversal / Cancel Journal', 'Riwayat Posting'],
+                'keyControls' => ['Pemantauan posting status', 'Kontrol adjustment dan reversal', 'Audit trail jurnal'],
+            ],
+            'reports' => [
+                'title' => 'Reports',
+                'description' => 'Laporan financial, operational, dan audit untuk monitoring kas menyeluruh.',
+                'modules' => ['Laporan Saldo Kas & Bank', 'Laporan Arus Kas', 'Laporan Payment Request', 'Laporan Pengeluaran', 'Laporan Penerimaan', 'Laporan Transfer Internal', 'Laporan Kas Kecil', 'Outstanding Approval', 'Payment Due List', 'Vendor Payment Report', 'Cost Center Expense', 'Cash Movement', 'Audit Trail', 'Activity Log'],
+                'keyControls' => ['Laporan financial dan operasional dalam satu area', 'Monitoring due payment dan outstanding approval', 'Audit reporting untuk ISO 9001'],
+            ],
+            'documents-audit' => [
+                'title' => 'Documents & Audit',
+                'description' => 'Arsip dokumen dan aktivitas user untuk memastikan ISO 9001 compliance.',
+                'modules' => ['Arsip Dokumen', 'Lampiran Transaksi', 'Audit Trail', 'Log Aktivitas User', 'History Perubahan Data', 'Temuan Audit'],
+                'keyControls' => ['Bukti objektif transaksi', 'Histori perubahan data', 'Manajemen temuan audit'],
+            ],
+            'settings' => [
+                'title' => 'Settings',
+                'description' => 'Konfigurasi sistem: master setting, access control, workflow, dan integrasi.',
+                'modules' => ['Profil Perusahaan', 'Periode Akuntansi', 'Penomoran Dokumen', 'User', 'Role', 'Permission', 'Role Menu Access', 'Workflow Approval', 'Approval Matrix', 'Approval Level', 'Notifikasi Sistem', 'Template Export / Print', 'Integrasi Sistem', 'Backup & Restore', 'Preferensi Aplikasi'],
+                'keyControls' => ['System setup dan governance', 'Role based access control', 'Workflow approval dan system config'],
+            ],
+        ];
+
+        abort_unless(isset($workspaces[$module]), 404);
+
+        return Inertia::render('Apps/CashManagement/ModulePage', $workspaces[$module]);
     }
 
     public function approvals(): Response
