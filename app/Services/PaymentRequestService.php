@@ -37,10 +37,17 @@ class PaymentRequestService
 
     public function submit(PaymentRequest $paymentRequest, int $userId): PaymentRequest
     {
+        if (! in_array($paymentRequest->status, ['draft', 'revision_required'], true)) {
+            throw ValidationException::withMessages([
+                'payment_request' => 'Dokumen tidak dalam status yang bisa dikirim.',
+            ]);
+        }
+
         $paymentRequest->update([
             'status' => 'submitted',
             'verification_status' => 'under_verification',
             'approval_status' => 'waiting_approval',
+            'rejected_reason' => null,
             'submitted_at' => now(),
             'updated_by' => $userId,
         ]);
