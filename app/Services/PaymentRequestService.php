@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\PaymentRequest;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -69,6 +70,82 @@ class PaymentRequestService
         }
 
         $paymentRequest->update($payload);
+
+        return $paymentRequest->refresh();
+    }
+
+    public function verify(PaymentRequest $paymentRequest, int $userId): PaymentRequest
+    {
+        if (! in_array($paymentRequest->status, ['submitted', 'under_verification'], true)) {
+            throw ValidationException::withMessages([
+                'payment_request' => 'Dokumen tidak dalam status yang bisa diverifikasi.',
+            ]);
+        }
+
+        $paymentRequest->update([
+            'status' => 'waiting_approval',
+            'verification_status' => 'verified',
+            'approval_status' => 'waiting_approval',
+            'verified_by' => $userId,
+            'verified_at' => now(),
+            'updated_by' => $userId,
+        ]);
+
+        return $paymentRequest->refresh();
+    }
+
+    public function approve(PaymentRequest $paymentRequest, int $userId): PaymentRequest
+    {
+        if (! in_array($paymentRequest->status, ['waiting_approval', 'verified'], true)) {
+            throw ValidationException::withMessages([
+                'payment_request' => 'Dokumen tidak dalam status yang bisa di-approve.',
+            ]);
+        }
+
+        $paymentRequest->update([
+            'status' => 'approved',
+            'approval_status' => 'approved',
+            'approved_by' => $userId,
+            'approved_at' => now(),
+            'updated_by' => $userId,
+        ]);
+
+        return $paymentRequest->refresh();
+    }
+
+    public function reject(PaymentRequest $paymentRequest, int $userId, string $reason): PaymentRequest
+    {
+        if (! in_array($paymentRequest->status, ['waiting_approval', 'verified'], true)) {
+            throw ValidationException::withMessages([
+                'payment_request' => 'Dokumen tidak dalam status yang bisa di-reject.',
+            ]);
+        }
+
+        $paymentRequest->update([
+            'status' => 'rejected',
+            'approval_status' => 'rejected',
+            'rejected_reason' => $reason,
+            'updated_by' => $userId,
+        ]);
+
+        return $paymentRequest->refresh();
+    }
+
+    public function requestRevision(PaymentRequest $paymentRequest, int $userId, string $reason): PaymentRequest
+    {
+        if (! in_array($paymentRequest->status, ['waiting_approval', 'verified'], true)) {
+            throw ValidationException::withMessages([
+                'payment_request' => 'Dokumen tidak dalam status yang bisa diminta revisi.',
+            ]);
+        }
+
+        $paymentRequest->update([
+            'status' => 'revision_required',
+            'approval_status' => 'revision_required',
+            'rejected_reason' => $reason,
+            'revision_no' => $paymentRequest->revision_no + 1,
+            'updated_by' => $userId,
+        ]);
 
         return $paymentRequest->refresh();
     }
