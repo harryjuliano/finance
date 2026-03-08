@@ -16,6 +16,7 @@ class PermissionTableSeeder extends Seeder
         // dashboard permissions
         Permission::create(['name' => 'dashboard-access']);
         Permission::create(['name' => 'cash-management-access']);
+        Permission::create(['name' => 'payment-requests-access']);
         Permission::create(['name' => 'master-data-access']);
         Permission::create(['name' => 'transactions-access']);
         Permission::create(['name' => 'approvals-access']);

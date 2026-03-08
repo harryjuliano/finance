@@ -24,7 +24,7 @@ export default function Menu() {
     const menuNavigation = [
         {
             title: 'Cash Management',
-            permissions: hasAnyPermission(['dashboard-access']),
+            permissions: hasAnyPermission(['cash-management-access']),
             details: [
                 {
                     title: 'Dashboard',
@@ -38,7 +38,7 @@ export default function Menu() {
                     href: '/apps/cash-management/payment-requests',
                     active: url.startsWith('/apps/cash-management/payment-requests'),
                     icon: <IconBuildingBank size={20} strokeWidth={1.5} />,
-                    permissions: hasAnyPermission(['dashboard-access']),
+                    permissions: hasAnyPermission(['payment-requests-access']),
                 },
 
                 {
@@ -46,7 +46,7 @@ export default function Menu() {
                     href: '/apps/cash-management/master-data',
                     active: url.startsWith('/apps/cash-management/master-data'),
                     icon: <IconDatabase size={20} strokeWidth={1.5} />,
-                    permissions: hasAnyPermission(['dashboard-access']),
+                    permissions: hasAnyPermission(['master-data-access']),
                 },
 
                 {
@@ -61,35 +61,35 @@ export default function Menu() {
                     href: '/apps/cash-management/treasury',
                     active: url.startsWith('/apps/cash-management/treasury'),
                     icon: <IconTransform size={20} strokeWidth={1.5} />,
-                    permissions: hasAnyPermission(['dashboard-access']),
+                    permissions: hasAnyPermission(['treasury-access']),
                 },
                 {
                     title: 'Approvals',
                     href: '/apps/cash-management/approvals',
                     active: url.startsWith('/apps/cash-management/approvals'),
                     icon: <IconClipboardCheck size={20} strokeWidth={1.5} />,
-                    permissions: hasAnyPermission(['dashboard-access']),
+                    permissions: hasAnyPermission(['approvals-access']),
                 },
                 {
                     title: 'Reconciliation',
                     href: '/apps/cash-management/reconciliation',
                     active: url.startsWith('/apps/cash-management/reconciliation'),
                     icon: <IconAdjustments size={20} strokeWidth={1.5} />,
-                    permissions: hasAnyPermission(['dashboard-access']),
+                    permissions: hasAnyPermission(['reconciliation-access']),
                 },
                 {
                     title: 'Reports',
                     href: '/apps/cash-management/reports',
                     active: url.startsWith('/apps/cash-management/reports'),
                     icon: <IconReportAnalytics size={20} strokeWidth={1.5} />,
-                    permissions: hasAnyPermission(['dashboard-access']),
+                    permissions: hasAnyPermission(['reports-access']),
                 },
                 {
                     title: 'Administration',
                     href: '/apps/cash-management/administration',
                     active: url.startsWith('/apps/cash-management/administration'),
                     icon: <IconSettings size={20} strokeWidth={1.5} />,
-                    permissions: hasAnyPermission(['dashboard-access']),
+                    permissions: hasAnyPermission(['administration-access']),
                 },
             ],
         },
