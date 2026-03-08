@@ -22,11 +22,19 @@ const emptyItem = {
 };
 
 export default function Index() {
-    const { paymentRequests, priorities, errors, references, auth } = usePage().props;
+    const { paymentRequests, priorities = [], errors = {}, references = {}, auth = {} } = usePage().props;
+    const companies = references.companies ?? [];
+    const branches = references.branches ?? [];
+    const departments = references.departments ?? [];
+    const costCenters = references.costCenters ?? [];
+    const projects = references.projects ?? [];
+    const currencies = references.currencies ?? [];
+    const categories = references.categories ?? [];
+    const partners = references.partners ?? [];
 
     const getDefaultPayload = () => ({
         id: '',
-        company_id: references.companies[0]?.id?.toString() ?? '',
+        company_id: companies[0]?.id?.toString() ?? '',
         branch_id: '',
         department_id: '',
         cost_center_id: '',
@@ -34,9 +42,9 @@ export default function Index() {
         requester_id: auth.user?.id?.toString() ?? '',
         request_no: '',
         request_date: '',
-        priority: priorities[1] ?? priorities[0],
+        priority: priorities[1] ?? priorities[0] ?? 'normal',
         due_date: '',
-        currency_id: references.currencies[0]?.id?.toString() ?? '',
+        currency_id: currencies[0]?.id?.toString() ?? '',
         exchange_rate: '1',
         description: '',
         document_complete_flag: false,
@@ -150,22 +158,22 @@ export default function Index() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <SelectField label="Company" value={data.company_id} onChange={(value) => setData('company_id', value)} options={references.companies} errors={errors.company_id} />
+                        <SelectField label="Company" value={data.company_id} onChange={(value) => setData('company_id', value)} options={companies} errors={errors.company_id} />
                         <Input label={'Requester'} type={'text'} value={auth.user?.name ?? '-'} disabled errors={errors.requester_id} />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <SelectField label="Branch" value={data.branch_id} onChange={(value) => setData('branch_id', value)} options={references.branches} errors={errors.branch_id} nullable />
-                        <SelectField label="Department" value={data.department_id} onChange={(value) => setData('department_id', value)} options={references.departments} errors={errors.department_id} nullable />
+                        <SelectField label="Branch" value={data.branch_id} onChange={(value) => setData('branch_id', value)} options={branches} errors={errors.branch_id} nullable />
+                        <SelectField label="Department" value={data.department_id} onChange={(value) => setData('department_id', value)} options={departments} errors={errors.department_id} nullable />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <SelectField label="Cost Center" value={data.cost_center_id} onChange={(value) => setData('cost_center_id', value)} options={references.costCenters} errors={errors.cost_center_id} nullable />
-                        <SelectField label="Project" value={data.project_id} onChange={(value) => setData('project_id', value)} options={references.projects} errors={errors.project_id} nullable />
+                        <SelectField label="Cost Center" value={data.cost_center_id} onChange={(value) => setData('cost_center_id', value)} options={costCenters} errors={errors.cost_center_id} nullable />
+                        <SelectField label="Project" value={data.project_id} onChange={(value) => setData('project_id', value)} options={projects} errors={errors.project_id} nullable />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <SelectField label="Currency" value={data.currency_id} onChange={(value) => setData('currency_id', value)} options={references.currencies.map((item) => ({ ...item, name: `${item.code} - ${item.name}` }))} errors={errors.currency_id} />
+                        <SelectField label="Currency" value={data.currency_id} onChange={(value) => setData('currency_id', value)} options={currencies.map((item) => ({ ...item, name: `${item.code} - ${item.name}` }))} errors={errors.currency_id} />
                         <SelectField label="Priority" value={data.priority} onChange={(value) => setData('priority', value)} options={priorities.map((priority) => ({ id: priority, name: priority }))} errors={errors.priority} />
                     </div>
 
@@ -190,8 +198,8 @@ export default function Index() {
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    <SelectField label="Category" value={item.category_id} onChange={(value) => setItemData(index, 'category_id', value)} options={references.categories} errors={errors[`items.${index}.category_id`]} nullable />
-                                    <SelectField label="Partner" value={item.partner_id} onChange={(value) => setItemData(index, 'partner_id', value)} options={references.partners} errors={errors[`items.${index}.partner_id`]} nullable />
+                                    <SelectField label="Category" value={item.category_id} onChange={(value) => setItemData(index, 'category_id', value)} options={categories} errors={errors[`items.${index}.category_id`]} nullable />
+                                    <SelectField label="Partner" value={item.partner_id} onChange={(value) => setItemData(index, 'partner_id', value)} options={partners} errors={errors[`items.${index}.partner_id`]} nullable />
                                 </div>
 
                                 <div className="rounded-md border border-dashed border-gray-300 dark:border-gray-700 p-3 space-y-2">
@@ -201,8 +209,8 @@ export default function Index() {
                                     </div>
                                     {(item.allocations ?? []).map((allocation, allocationIndex) => (
                                         <div key={allocationIndex} className="grid grid-cols-1 md:grid-cols-4 gap-2 items-end">
-                                            <SelectField label="Cost Center" value={allocation.cost_center_id} onChange={(value) => setAllocationData(index, allocationIndex, 'cost_center_id', value)} options={references.costCenters} errors={errors[`items.${index}.allocations.${allocationIndex}.cost_center_id`]} nullable />
-                                            <SelectField label="Project" value={allocation.project_id} onChange={(value) => setAllocationData(index, allocationIndex, 'project_id', value)} options={references.projects} errors={errors[`items.${index}.allocations.${allocationIndex}.project_id`]} nullable />
+                                            <SelectField label="Cost Center" value={allocation.cost_center_id} onChange={(value) => setAllocationData(index, allocationIndex, 'cost_center_id', value)} options={costCenters} errors={errors[`items.${index}.allocations.${allocationIndex}.cost_center_id`]} nullable />
+                                            <SelectField label="Project" value={allocation.project_id} onChange={(value) => setAllocationData(index, allocationIndex, 'project_id', value)} options={projects} errors={errors[`items.${index}.allocations.${allocationIndex}.project_id`]} nullable />
                                             <Input label={'Amount'} type={'number'} value={allocation.amount} onChange={(e) => setAllocationData(index, allocationIndex, 'amount', e.target.value)} errors={errors[`items.${index}.allocations.${allocationIndex}.amount`]} />
                                             <button type="button" onClick={() => removeAllocation(index, allocationIndex)} className="h-9 text-rose-500 hover:text-rose-600 disabled:opacity-40" disabled={(item.allocations ?? []).length === 1}><IconX size={16} /></button>
                                         </div>
