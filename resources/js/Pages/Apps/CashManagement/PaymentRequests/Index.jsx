@@ -22,7 +22,7 @@ const emptyItem = {
 };
 
 export default function Index() {
-    const { paymentRequests, priorities, errors, references } = usePage().props;
+    const { paymentRequests, priorities, errors, references, auth } = usePage().props;
 
     const getDefaultPayload = () => ({
         id: '',
@@ -31,7 +31,7 @@ export default function Index() {
         department_id: '',
         cost_center_id: '',
         project_id: '',
-        requester_id: references.requesters[0]?.id?.toString() ?? '',
+        requester_id: auth.user?.id?.toString() ?? '',
         request_no: '',
         request_date: '',
         priority: priorities[1] ?? priorities[0],
@@ -107,7 +107,7 @@ export default function Index() {
             department_id: item.department_id?.toString() ?? '',
             cost_center_id: item.cost_center_id?.toString() ?? '',
             project_id: item.project_id?.toString() ?? '',
-            requester_id: item.requester_id?.toString() ?? '',
+            requester_id: auth.user?.id?.toString() ?? '',
             request_no: item.request_no,
             request_date: item.request_date,
             priority: item.priority,
@@ -151,7 +151,7 @@ export default function Index() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <SelectField label="Company" value={data.company_id} onChange={(value) => setData('company_id', value)} options={references.companies} errors={errors.company_id} />
-                        <SelectField label="Requester" value={data.requester_id} onChange={(value) => setData('requester_id', value)} options={references.requesters} errors={errors.requester_id} />
+                        <Input label={'Requester'} type={'text'} value={auth.user?.name ?? '-'} disabled errors={errors.requester_id} />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

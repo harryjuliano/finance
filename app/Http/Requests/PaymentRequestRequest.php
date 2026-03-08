@@ -21,7 +21,7 @@ class PaymentRequestRequest extends FormRequest
             'department_id' => ['nullable', 'integer', 'exists:departments,id'],
             'cost_center_id' => ['nullable', 'integer', 'exists:cost_centers,id'],
             'project_id' => ['nullable', 'integer', 'exists:projects,id'],
-            'requester_id' => ['required', 'integer', 'exists:users,id'],
+            'requester_id' => ['nullable', 'integer', 'exists:users,id'],
             'request_no' => ['required', 'string', 'max:100', 'unique:payment_requests,request_no,'.$paymentRequestId],
             'request_date' => ['required', 'date'],
             'priority' => ['required', 'string', 'in:low,normal,high,urgent'],

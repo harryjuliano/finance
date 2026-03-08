@@ -17,6 +17,7 @@ class RoleTableSeeder extends Seeder
         $financePermissions = Permission::whereIn('name', [
             'dashboard-access',
             'cash-management-access',
+            'payment-requests-access',
             'master-data-access',
             'transactions-access',
             'approvals-access',
@@ -30,6 +31,7 @@ class RoleTableSeeder extends Seeder
         $financeStaff->givePermissionTo([
             'dashboard-access',
             'cash-management-access',
+            'payment-requests-access',
             'transactions-access',
             'reports-access',
         ]);
@@ -38,6 +40,7 @@ class RoleTableSeeder extends Seeder
         $financeSupervisor->givePermissionTo([
             'dashboard-access',
             'cash-management-access',
+            'payment-requests-access',
             'transactions-access',
             'approvals-access',
             'reports-access',
@@ -47,6 +50,7 @@ class RoleTableSeeder extends Seeder
         $financeManager->givePermissionTo([
             'dashboard-access',
             'cash-management-access',
+            'payment-requests-access',
             'master-data-access',
             'transactions-access',
             'approvals-access',
@@ -59,9 +63,18 @@ class RoleTableSeeder extends Seeder
         $cashierTreasury->givePermissionTo([
             'dashboard-access',
             'cash-management-access',
+            'payment-requests-access',
             'transactions-access',
             'treasury-access',
             'reports-access',
+        ]);
+
+
+        $regularUser = Role::create(['name' => 'reguler-user']);
+        $regularUser->givePermissionTo([
+            'dashboard-access',
+            'cash-management-access',
+            'payment-requests-access',
         ]);
 
         $auditor = Role::create(['name' => 'auditor']);

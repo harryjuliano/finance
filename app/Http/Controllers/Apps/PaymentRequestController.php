@@ -14,7 +14,6 @@ use App\Models\Department;
 use App\Models\PaymentRequest;
 use App\Models\Project;
 use App\Models\TransactionCategory;
-use App\Models\User;
 use App\Services\PaymentRequestService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -28,8 +27,11 @@ class PaymentRequestController extends Controller
 
     public function index(): Response
     {
+        $user = request()->user();
+
         $paymentRequests = PaymentRequest::query()
             ->with(['requester:id,name', 'items.allocations'])
+            ->when($user?->hasRole('reguler-user'), fn ($query) => $query->where('requester_id', $user->id))
             ->when(request('search'), function ($query, string $search) {
                 $query->where(function ($subQuery) use ($search) {
                     $subQuery->where('request_no', 'like', "%{$search}%")
@@ -60,7 +62,6 @@ class PaymentRequestController extends Controller
                 'costCenters' => CostCenter::query()->select('id', 'name')->orderBy('name')->get(),
                 'projects' => Project::query()->select('id', 'name')->orderBy('name')->get(),
                 'currencies' => Currency::query()->select('id', 'code', 'name')->orderBy('code')->get(),
-                'requesters' => User::query()->select('id', 'name')->orderBy('name')->get(),
                 'categories' => TransactionCategory::query()->select('id', 'name')->orderBy('name')->get(),
                 'partners' => BusinessPartner::query()->select('id', 'name')->orderBy('name')->get(),
             ],
@@ -70,6 +71,7 @@ class PaymentRequestController extends Controller
     public function store(PaymentRequestRequest $request)
     {
         $payload = $request->validated();
+        $payload['requester_id'] = $request->user()->id;
         $payload['created_by'] = $request->user()->id;
         $payload['updated_by'] = $request->user()->id;
 
@@ -80,7 +82,10 @@ class PaymentRequestController extends Controller
 
     public function update(PaymentRequestRequest $request, PaymentRequest $payment_request)
     {
+        $this->authorizeOwnPaymentRequestForRegularUser($request, $payment_request);
+
         $payload = $request->validated();
+        unset($payload['requester_id']);
         $payload['updated_by'] = $request->user()->id;
 
         $this->paymentRequestService->update($payment_request, $payload);
@@ -88,8 +93,10 @@ class PaymentRequestController extends Controller
         return back();
     }
 
-    public function destroy(PaymentRequest $payment_request)
+    public function destroy(Request $request, PaymentRequest $payment_request)
     {
+        $this->authorizeOwnPaymentRequestForRegularUser($request, $payment_request);
+
         $payment_request->delete();
 
         return back();
@@ -98,6 +105,8 @@ class PaymentRequestController extends Controller
 
     public function markPaid(Request $request, PaymentRequest $payment_request)
     {
+        $this->authorizeOwnPaymentRequestForRegularUser($request, $payment_request);
+
         $validated = $request->validate([
             'payment_method' => ['required', 'string', 'max:100'],
             'source_account' => ['required', 'string', 'max:150'],
@@ -113,23 +122,29 @@ class PaymentRequestController extends Controller
         return back();
     }
 
-    public function submit(PaymentRequest $payment_request, SubmitPaymentRequestAction $action)
+    public function submit(Request $request, PaymentRequest $payment_request, SubmitPaymentRequestAction $action)
     {
+        $this->authorizeOwnPaymentRequestForRegularUser($request, $payment_request);
+
         $action->execute($payment_request, auth()->id());
 
         return back();
     }
 
 
-    public function verify(PaymentRequest $payment_request)
+    public function verify(Request $request, PaymentRequest $payment_request)
     {
+        $this->authorizeOwnPaymentRequestForRegularUser($request, $payment_request);
+
         $this->paymentRequestService->verify($payment_request, (int) request()->user()->id);
 
         return back();
     }
 
-    public function approve(PaymentRequest $payment_request)
+    public function approve(Request $request, PaymentRequest $payment_request)
     {
+        $this->authorizeOwnPaymentRequestForRegularUser($request, $payment_request);
+
         $this->paymentRequestService->approve($payment_request, (int) request()->user()->id);
 
         return back();
@@ -137,6 +152,8 @@ class PaymentRequestController extends Controller
 
     public function reject(Request $request, PaymentRequest $payment_request)
     {
+        $this->authorizeOwnPaymentRequestForRegularUser($request, $payment_request);
+
         $validated = $request->validate([
             'reason' => ['required', 'string', 'max:500'],
         ]);
@@ -148,6 +165,8 @@ class PaymentRequestController extends Controller
 
     public function requestRevision(Request $request, PaymentRequest $payment_request)
     {
+        $this->authorizeOwnPaymentRequestForRegularUser($request, $payment_request);
+
         $validated = $request->validate([
             'reason' => ['required', 'string', 'max:500'],
         ]);
@@ -155,5 +174,11 @@ class PaymentRequestController extends Controller
         $this->paymentRequestService->requestRevision($payment_request, (int) $request->user()->id, $validated['reason']);
 
         return back();
+    }
+    private function authorizeOwnPaymentRequestForRegularUser(Request $request, PaymentRequest $paymentRequest): void
+    {
+        if ($request->user()?->hasRole('reguler-user') && (int) $paymentRequest->requester_id !== (int) $request->user()->id) {
+            abort(403, 'Anda tidak memiliki akses untuk payment request ini.');
+        }
     }
 }
