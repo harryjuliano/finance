@@ -329,4 +329,15 @@ it('can run approval workflow actions from backend endpoints', function () {
     expect($revisionCandidate->approval_status)->toBe('revision_required');
     expect($revisionCandidate->revision_no)->toBe(1);
     expect($revisionCandidate->rejected_reason)->toBe('Perbaiki nominal PPN dan dokumen pendukung');
+
+    $this->actingAs($user)
+        ->post(route('apps.cash-management.payment-requests.submit', $revisionCandidate))
+        ->assertRedirect();
+
+    $revisionCandidate->refresh();
+
+    expect($revisionCandidate->status)->toBe('submitted');
+    expect($revisionCandidate->verification_status)->toBe('under_verification');
+    expect($revisionCandidate->approval_status)->toBe('waiting_approval');
+    expect($revisionCandidate->rejected_reason)->toBeNull();
 });

@@ -244,10 +244,18 @@ export default function Index() {
                                 <Table.Td>Rp {Number(item.net_amount).toLocaleString('id-ID')}</Table.Td>
                                 <Table.Td>{item.status}</Table.Td>
                                 <Table.Td>
-                                    <div className="flex gap-2">
-                                        <Button type={'button'} icon={<IconPencilCog size={16} strokeWidth={1.5} />} variant={'orange'} onClick={() => openEditModal(item)} />
-                                        {item.status === 'draft' && <Button type={'button'} icon={<IconSend size={16} strokeWidth={1.5} />} variant={'emerald'} onClick={() => post(route('apps.cash-management.payment-requests.submit', item.id))} />}
-                                        <Button type={'delete'} icon={<IconTrash size={16} strokeWidth={1.5} />} variant={'rose'} url={route('apps.cash-management.payment-requests.destroy', item.id)} />
+                                    <div className="space-y-2">
+                                        {item.rejected_reason && (
+                                            <p className="text-xs text-orange-600 dark:text-orange-300">
+                                                Catatan Approval: {item.rejected_reason}
+                                            </p>
+                                        )}
+
+                                        <div className="flex gap-2">
+                                            <Button type={'button'} icon={<IconPencilCog size={16} strokeWidth={1.5} />} variant={'orange'} onClick={() => openEditModal(item)} />
+                                            {['draft', 'revision_required'].includes(item.status) && <Button type={'button'} icon={<IconSend size={16} strokeWidth={1.5} />} variant={'emerald'} onClick={() => post(route('apps.cash-management.payment-requests.submit', item.id))} />}
+                                            <Button type={'delete'} icon={<IconTrash size={16} strokeWidth={1.5} />} variant={'rose'} url={route('apps.cash-management.payment-requests.destroy', item.id)} />
+                                        </div>
                                     </div>
                                 </Table.Td>
                             </tr>
