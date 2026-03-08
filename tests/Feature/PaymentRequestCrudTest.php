@@ -230,3 +230,103 @@ it('can mark payment request as paid from treasury execution', function () {
     expect($paymentRequest->source_account)->toBe('Bank BCA Operasional');
     expect($paymentRequest->paid_at)->not->toBeNull();
 });
+
+it('can run approval workflow actions from backend endpoints', function () {
+    $user = User::factory()->create();
+
+    $company = Company::query()->create([
+        'code' => 'CMP-003',
+        'name' => 'PT Approval Test',
+        'status' => 'active',
+    ]);
+
+    $currency = Currency::query()->create([
+        'code' => 'IDU',
+        'name' => 'Rupiah Uji',
+        'symbol' => 'Rp',
+        'is_base_currency' => false,
+        'status' => 'active',
+    ]);
+
+    $makePaymentRequest = function (string $requestNo, string $status, string $verificationStatus, string $approvalStatus) use ($company, $currency, $user): PaymentRequest {
+        return PaymentRequest::query()->create([
+            'company_id' => $company->id,
+            'branch_id' => null,
+            'department_id' => null,
+            'cost_center_id' => null,
+            'project_id' => null,
+            'requester_id' => $user->id,
+            'request_no' => $requestNo,
+            'request_date' => now()->toDateString(),
+            'priority' => 'normal',
+            'due_date' => now()->addDays(2)->toDateString(),
+            'currency_id' => $currency->id,
+            'exchange_rate' => 1,
+            'total_amount' => 250000,
+            'tax_amount' => 0,
+            'net_amount' => 250000,
+            'description' => 'Approval workflow test',
+            'status' => $status,
+            'verification_status' => $verificationStatus,
+            'approval_status' => $approvalStatus,
+            'payment_status' => 'unpaid',
+            'document_complete_flag' => true,
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+        ]);
+    };
+
+    $paymentRequest = $makePaymentRequest('PR-2026-1001', 'submitted', 'under_verification', 'waiting_approval');
+
+    $this->actingAs($user)
+        ->post(route('apps.cash-management.payment-requests.verify', $paymentRequest))
+        ->assertRedirect();
+
+    $paymentRequest->refresh();
+
+    expect($paymentRequest->status)->toBe('waiting_approval');
+    expect($paymentRequest->verification_status)->toBe('verified');
+    expect($paymentRequest->approval_status)->toBe('waiting_approval');
+    expect($paymentRequest->verified_by)->toBe($user->id);
+    expect($paymentRequest->verified_at)->not->toBeNull();
+
+    $this->actingAs($user)
+        ->post(route('apps.cash-management.payment-requests.approve', $paymentRequest))
+        ->assertRedirect();
+
+    $paymentRequest->refresh();
+
+    expect($paymentRequest->status)->toBe('approved');
+    expect($paymentRequest->approval_status)->toBe('approved');
+    expect($paymentRequest->approved_by)->toBe($user->id);
+    expect($paymentRequest->approved_at)->not->toBeNull();
+
+    $rejectionCandidate = $makePaymentRequest('PR-2026-1002', 'waiting_approval', 'verified', 'waiting_approval');
+
+    $this->actingAs($user)
+        ->post(route('apps.cash-management.payment-requests.reject', $rejectionCandidate), [
+            'reason' => 'Lampiran invoice tidak valid',
+        ])
+        ->assertRedirect();
+
+    $rejectionCandidate->refresh();
+
+    expect($rejectionCandidate->status)->toBe('rejected');
+    expect($rejectionCandidate->approval_status)->toBe('rejected');
+    expect($rejectionCandidate->rejected_reason)->toBe('Lampiran invoice tidak valid');
+
+    $revisionCandidate = $makePaymentRequest('PR-2026-1003', 'waiting_approval', 'verified', 'waiting_approval');
+
+    $this->actingAs($user)
+        ->post(route('apps.cash-management.payment-requests.request-revision', $revisionCandidate), [
+            'reason' => 'Perbaiki nominal PPN dan dokumen pendukung',
+        ])
+        ->assertRedirect();
+
+    $revisionCandidate->refresh();
+
+    expect($revisionCandidate->status)->toBe('revision_required');
+    expect($revisionCandidate->approval_status)->toBe('revision_required');
+    expect($revisionCandidate->revision_no)->toBe(1);
+    expect($revisionCandidate->rejected_reason)->toBe('Perbaiki nominal PPN dan dokumen pendukung');
+});

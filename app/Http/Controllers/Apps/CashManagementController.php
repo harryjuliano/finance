@@ -45,11 +45,33 @@ class CashManagementController extends Controller
 
     public function approvals(): Response
     {
-        return Inertia::render('Apps/CashManagement/ModulePage', [
-            'title' => 'Approval Inbox',
-            'description' => 'Segregation of duties maker-checker-approver dengan approval matrix per nominal.',
-            'modules' => ['Need Verification', 'Need Approval', 'Rejected', 'Revision Required', 'Approval Timeline'],
-            'keyControls' => ['Maker bukan final approver', 'Mandatory reason reject/revision', 'Audit trail semua keputusan'],
+        $paymentRequests = PaymentRequest::query()
+            ->with(['items.partner:id,name', 'requester:id,name'])
+            ->whereIn('status', ['submitted', 'under_verification', 'verified', 'waiting_approval', 'approved', 'rejected', 'revision_required'])
+            ->latest('updated_at')
+            ->latest('id')
+            ->limit(30)
+            ->get();
+
+        return Inertia::render('Apps/CashManagement/Approvals/Index', [
+            'summary' => [
+                ['label' => 'Need Verification', 'value' => $paymentRequests->whereIn('status', ['submitted', 'under_verification'])->count()],
+                ['label' => 'Need Approval', 'value' => $paymentRequests->whereIn('status', ['verified', 'waiting_approval'])->count()],
+                ['label' => 'Approved', 'value' => $paymentRequests->where('status', 'approved')->count()],
+                ['label' => 'Rejected/Revision', 'value' => $paymentRequests->whereIn('status', ['rejected', 'revision_required'])->count()],
+            ],
+            'approvalQueue' => $paymentRequests->map(fn (PaymentRequest $paymentRequest): array => [
+                'id' => $paymentRequest->id,
+                'request_no' => $paymentRequest->request_no,
+                'requester' => $paymentRequest->requester?->name ?? '-',
+                'vendor' => $paymentRequest->items->first()?->partner?->name ?? '-',
+                'request_date' => optional($paymentRequest->request_date)->format('d M Y') ?? '-',
+                'due_date' => optional($paymentRequest->due_date)->format('d M Y') ?? '-',
+                'amount' => 'Rp '.number_format((float) $paymentRequest->net_amount, 0, ',', '.'),
+                'status' => $paymentRequest->status,
+                'status_label' => str($paymentRequest->status)->replace('_', ' ')->title()->value(),
+                'rejected_reason' => $paymentRequest->rejected_reason,
+            ])->values(),
         ]);
     }
 

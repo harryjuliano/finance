@@ -119,4 +119,41 @@ class PaymentRequestController extends Controller
 
         return back();
     }
+
+
+    public function verify(PaymentRequest $payment_request)
+    {
+        $this->paymentRequestService->verify($payment_request, (int) request()->user()->id);
+
+        return back();
+    }
+
+    public function approve(PaymentRequest $payment_request)
+    {
+        $this->paymentRequestService->approve($payment_request, (int) request()->user()->id);
+
+        return back();
+    }
+
+    public function reject(Request $request, PaymentRequest $payment_request)
+    {
+        $validated = $request->validate([
+            'reason' => ['required', 'string', 'max:500'],
+        ]);
+
+        $this->paymentRequestService->reject($payment_request, (int) $request->user()->id, $validated['reason']);
+
+        return back();
+    }
+
+    public function requestRevision(Request $request, PaymentRequest $payment_request)
+    {
+        $validated = $request->validate([
+            'reason' => ['required', 'string', 'max:500'],
+        ]);
+
+        $this->paymentRequestService->requestRevision($payment_request, (int) $request->user()->id, $validated['reason']);
+
+        return back();
+    }
 }
