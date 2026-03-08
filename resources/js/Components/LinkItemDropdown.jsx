@@ -8,7 +8,7 @@ export default function LinkItemDropdown({icon, title, data, access, sidebarOpen
     const { url } = usePage();
 
     // define state
-    const [isOpen, setIsOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState(data.some((item) => url.startsWith(item.href)));
 
     // destruct auth from usepage props
     const { auth } = usePage().props;

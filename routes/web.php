@@ -40,6 +40,7 @@ Route::group(['prefix' => 'apps', 'as' => 'apps.', 'middleware' => ['auth']], fu
         Route::post('/payment-requests/{payment_request}/request-revision', [PaymentRequestController::class, 'requestRevision'])->middleware('permission:approvals-access')->name('payment-requests.request-revision');
         Route::post('/payment-requests/{payment_request}/mark-paid', [PaymentRequestController::class, 'markPaid'])->middleware('permission:treasury-access')->name('payment-requests.mark-paid');
         Route::get('/phase-1', [PhaseOneController::class, 'index'])->name('phase-1.index');
+        Route::get('/workspace/{module}', [CashManagementController::class, 'workspace'])->name('workspace');
 
         Route::get('/approvals', [CashManagementController::class, 'approvals'])->name('approvals');
         Route::get('/treasury', [CashManagementController::class, 'treasury'])->name('treasury');
